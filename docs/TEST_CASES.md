@@ -131,40 +131,66 @@ User record is not created.
 #### Actual Result
 HTTP Status `400 Bad Request` returned with validation error message.
 **Status:** PASS
-### [TC-005] Input Validation - Whitespace fullName (Negative)
 
-**Module:** Authentication / Registration  
-**Priority:** Medium  
-**Severity:** Minor  
+## TC-005 — Whitespace-only Full Name
+
+**Module:** Authentication / Registration
+**Priority:** Minor
+**Related Bug:** [BUG-005](../bug-reports/BUG-005.md)
 
 **Preconditions:**
-1. Backend server is running.
-2. PostgreSQL database is active.
 
----
+* Registration endpoint is available.
+* Email is not registered.
 
-#### Test Steps
+**Steps:**
 
-| # | Step Description | Expected Result |
-|---|---|---|
-| 1 | Send `POST /api/auth/register` with `fullName` consisting only of spaces (`"   "`). | HTTP Status `400 Bad Request` is returned. System rejects empty/whitespace names. |
+1. Send `POST /api/auth/register`.
+2. Provide a valid email.
+3. Set `fullName` to whitespace characters only.
+4. Provide a valid password.
 
----
+**Expected Result:**
 
-#### Postconditions
-User record is not created.
+* API returns `400 Bad Request`.
+* Registration is rejected.
+* No user with a whitespace-only name is created.
 
-#### Test Data
-- **fullName:** `"   "` (3 spaces)
-- **email:** `"qa.whitespace@example.com"`
-- **password:** `"securePass123"`
+**Initial Result:** FAIL
+**Retest Result:** PASS
 
-#### Actual Result
-HTTP Status `201 Created` is returned. The user is successfully saved in the database with a name consisting entirely of spaces.
-**Status:** FAIL
-**Bug ID:** [BUG-005]
+**Fix Commit:** [`e2ef8bf`](https://github.com/rohachevsk/RoomBookingService/commit/e2ef8bf79eb27dc4df5e0dc9fae01708e86c07d7)
 
----
+
+---## TC-005 — Whitespace-only Full Name
+
+**Module:** Authentication / Registration
+**Priority:** Minor
+**Related Bug:** [BUG-005](../bug-reports/BUG-005.md)
+
+**Preconditions:**
+
+* Registration endpoint is available.
+* Email is not registered.
+
+**Steps:**
+
+1. Send `POST /api/auth/register`.
+2. Provide a valid email.
+3. Set `fullName` to whitespace characters only.
+4. Provide a valid password.
+
+**Expected Result:**
+
+* API returns `400 Bad Request`.
+* Registration is rejected.
+* No user with a whitespace-only name is created.
+
+**Initial Result:** FAIL
+**Retest Result:** PASS
+
+**Fix Commit:** [`e2ef8bf`](https://github.com/rohachevsk/RoomBookingService/commit/e2ef8bf79eb27dc4df5e0dc9fae01708e86c07d7)
+
 
 ### [TC-006] Input Validation - Incorrect Data Types (Negative)
 
@@ -459,72 +485,63 @@ Nested user objects do not expose password hashes.
 
 ---
 
-### [TC-015] JWT Fallback Secret Vulnerability (Security / White-box)
+## TC-015 — JWT Fallback Secret Security
 
-**Module:** Security / Authorization  
-**Priority:** Critical  
-**Severity:** Critical  
-
-**Preconditions:**
-1. Access to backend source code.
-2. Server is running in a live/production-like environment.
-
----
-
-#### Test Steps
-
-| # | Step Description | Expected Result |
-|---|---|---|
-| 1 | Inspect backend codebase for JWT secret configuration (`config/env.ts`). | Application does not use insecure hardcoded fallback secrets. |
-| 2 | Generate a forged JWT locally with payload `{"role": "ADMIN"}` signed using the discovered fallback secret (`local-development-secret`). | Token is generated locally. |
-| 3 | Send `GET /api/bookings/my` (or any auth route) with the forged token. | HTTP Status `401 Unauthorized` or `500 Internal Server Error`. Application rejects tokens signed with dev secrets. |
-
----
-
-#### Postconditions
-Unauthorized access via default secrets is blocked.
-
-#### Test Data
-- **Forged Payload:** `{"sub": "fake-user-id", "role": "ADMIN"}`
-- **Signing Secret:** `"local-development-secret"`
-
-#### Actual Result
-HTTP Status `200 OK` is returned. Code inspection reveals `jwtSecret = JWT_SECRET ?? 'local-development-secret'`. The live server successfully accepts and processes the forged admin token.
-**Status:** FAIL
-**Bug ID:** [BUG-001]
-
----
-
-### [TC-016] Brute-Force Protection & Rate Limiting (Security)
-
-**Module:** Security / Rate Limiting  
-**Priority:** High  
-**Severity:** Major  
+**Module:** Security / Authentication
+**Priority:** Critical
+**Related Bug:** [BUG-001](../bug-reports/BUG-001.md)
 
 **Preconditions:**
-1. Backend server is running.
-2. User account exists.
+
+* Backend is running.
+* JWT secret configuration is intentionally unavailable for the test scenario.
+
+**Steps:**
+
+1. Create a forged JWT using the previously identified fallback secret.
+2. Set a valid-looking user ID and `ADMIN` role in the token payload.
+3. Send a request to an authenticated endpoint using the forged token.
+
+**Expected Result:**
+
+* Forged JWT is rejected.
+* API returns `401 Unauthorized`.
+* The application does not accept authentication based on a predictable fallback secret.
+
+**Initial Result:** FAIL
+**Retest Result:** PASS
+
+**Fix Commit:** [`644a595`](https://github.com/rohachevsk/RoomBookingService/commit/644a5952347dff8a47174317809d4bbd723b4c02)
 
 ---
 
-#### Test Steps
+## TC-016 — Login Rate Limiting
 
-| # | Step Description | Expected Result |
-|---|---|---|
-| 1 | Send 20 consecutive `POST /api/auth/login` requests with an incorrect password for the same email within 60 seconds. | 1. Initial requests return `401 Unauthorized`.<br>2. Subsequent requests return `429 Too Many Requests`. |
+**Module:** Security / Authentication
+**Priority:** Medium
+**Related Bug:** [BUG-004](../bug-reports/BUG-004.md)
 
----
+**Preconditions:**
 
-#### Postconditions
-System blocks excessive login attempts to prevent password guessing/brute-force attacks.
+* Login endpoint is available.
+* Valid email exists.
 
-#### Test Data
-- 20 requests in rapid succession using an automated runner (e.g., Postman Runner).
+**Steps:**
 
-#### Actual Result
-All 20 requests returned `401 Unauthorized`. No `429 Too Many Requests` limit was triggered. Code inspection confirms absence of rate-limiting middleware.
-**Status:** FAIL
-**Bug ID:** [BUG-004]
+1. Send repeated login requests with an incorrect password.
+2. Perform the requests within a short period of time.
+3. Observe the API responses.
+
+**Expected Result:**
+
+* Repeated failed authentication attempts are throttled according to the configured rate limit.
+* Excessive requests receive the configured rate-limit response.
+* The login endpoint is protected against unrestricted repeated attempts.
+
+**Initial Result:** FAIL
+**Retest Result:** PASS
+
+**Fix Commit:** [`8e55c16`](https://github.com/rohachevsk/RoomBookingService/commit/8e55c16815401b0641d90fd6ed54fbda19fd5402)
 
 ## 3. Rooms Management (`/rooms`)
 
@@ -823,35 +840,33 @@ HTTP Status `404 Not Found` is returned.
 
 ---
 
-### [TC-026] Input Validation - Invalid UUID Format (Negative)
+## TC-026 — Invalid UUID Format in Booking Request
 
-**Module:** Bookings Management / API Robustness  
-**Priority:** High  
-**Severity:** Major  
+**Module:** Bookings / Validation
+**Priority:** Medium
+**Related Bug:** [BUG-003](../bug-reports/BUG-003.md)
 
 **Preconditions:**
-1. User is authenticated.
 
----
+* User is authenticated.
+* Booking endpoint is available.
 
-#### Test Steps
+**Steps:**
 
-| # | Step Description | Expected Result |
-|---|---|---|
-| 1 | Send `POST /api/bookings` with a syntactically invalid `roomId` string (e.g., `"not-a-uuid"`). | HTTP Status `400 Bad Request` is returned with a clear validation error. |
+1. Send `POST /api/bookings`.
+2. Provide an invalid UUID value as `roomId`.
+3. Provide otherwise valid booking data.
 
----
+**Expected Result:**
 
-#### Postconditions
-Server gracefully handles the bad format without crashing.
+* API returns `400 Bad Request`.
+* Response contains a structured validation error.
+* The invalid UUID does not result in an internal server error.
 
-#### Test Data
-- **roomId:** `"not-a-uuid"`
+**Initial Result:** FAIL
+**Retest Result:** PASS
 
-#### Actual Result
-HTTP Status `500 Internal Server Error` is returned with an empty body. Prisma unhandled exception for malformed UUID leaks through the controller.
-**Status:** FAIL
-**Bug ID:** [BUG-003]
+**Fix Commit:** [`8d83260`](https://github.com/rohachevsk/RoomBookingService/commit/8d83260f05e7d8aa73de0c723a1e14f31b907a25)
 
 ---
 
@@ -1241,8 +1256,14 @@ Existing database records remain intact and are not accidentally wiped by develo
 
 #### Actual Result
 Code inspection (`prisma/seed.ts:9-12`) reveals unconditional `deleteMany()` operations across all core tables (`logs`, `bookings`, `rooms`, `users`) without any environment checks or warnings. Code inspection of prisma/seed.ts:9-12 confirms that the script executes unconditional deleteMany() operations for logs, bookings, rooms, and users. If executed against a populated database, these operations would delete the existing records.
-**Status:** FAIL
-**Bug ID:** [BUG-002]
+
+**Related Bug:** [BUG-002](../bug-reports/BUG-002.md)
+
+**Initial Result:** FAIL
+
+**Retest Result:** PASS
+
+**Fix Commit:** [`b034ad8`](https://github.com/rohachevsk/RoomBookingService/commit/b034ad8371446c8a60ab6107d0378e7bfc0e6edb)
 
 ---
 
@@ -1313,6 +1334,15 @@ The `<input type="date">` lacks a `min` attribute, allowing infinite navigation 
 **Status:** FAIL
 **Bug ID:** [BUG-007]
 
+#### Retest
+
+**Retest Date:** 2026-09-21
+**Retest Result:** PASS
+**Fix Commit:** [`74d89d9`](https://github.com/rohachevsk/RoomBookingService/commit/74d89d93518ccf510d4c49f2a7465abe4784b74e)
+
+The fix was verified by repeating the original test scenario. Past dates are now restricted in the calendar UI and cannot be selected for new bookings.
+
+
 ---
 
 ### [TC-041] Partial Slot Visual Indication and Interaction (Negative / UI)
@@ -1347,3 +1377,12 @@ User cannot accidentally submit a booking that overlaps with an existing partial
 Hour cells remain completely clickable regardless of partial bookings. The booked block renders merely as a visual overlay. Clicking the cell successfully opens the booking modal, allowing form submission, which is subsequently rejected by the backend with a `409 Conflict`. There is no visual indication preventing partial overlaps on the frontend.
 **Status:** FAIL
 **Bug ID:** [BUG-008]
+
+#### Retest
+
+**Retest Date:** 2026-09-21
+**Retest Result:** PASS
+**Fix Commit:** [`76a0c4b`](https://github.com/rohachevsk/RoomBookingService/commit/76a0c4be1f673a92df33aa39c0f6205cfbd83323)
+
+The fix was verified by repeating the original test scenario. The calendar now correctly handles partially occupied time slots and prevents conflicting booking selection.
+
