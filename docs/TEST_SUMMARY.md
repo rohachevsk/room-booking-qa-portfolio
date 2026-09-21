@@ -101,7 +101,7 @@ The fixes were subsequently retested using the original defect scenarios.
 | Retest FAIL        |      0 |
 | Retest Pass Rate   |   100% |
 
-The complete retest results and links to the corresponding fix commits are documented in [`RETEST_REPORT.md`](./docs/RETEST_REPORT.md).
+The complete retest results and links to the corresponding fix commits are documented in [`RETEST_REPORT.md`](./RETEST_REPORT.md).
 
 ---
 
