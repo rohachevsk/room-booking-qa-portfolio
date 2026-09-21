@@ -127,10 +127,12 @@ room-booking-qa-portfolio/
 │
 ├── postman/
 │   ├── Room Booking API.postman_collection.json
-|   └── Room Booking Dev.postman_environment.json
+|   ├── Room Booking Dev.postman_environment.json
+|   └── README.md
 │
 └── sql/
-    └── test-queries.sql
+    ├── test-queries.sql
+    └── README.md
 ```
 
 ---
