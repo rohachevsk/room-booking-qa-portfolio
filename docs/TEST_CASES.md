@@ -162,36 +162,6 @@ HTTP Status `400 Bad Request` returned with validation error message.
 **Fix Commit:** [`e2ef8bf`](https://github.com/rohachevsk/RoomBookingService/commit/e2ef8bf79eb27dc4df5e0dc9fae01708e86c07d7)
 
 
----## TC-005 — Whitespace-only Full Name
-
-**Module:** Authentication / Registration
-**Priority:** Minor
-**Related Bug:** [BUG-005](../bug-reports/BUG-005.md)
-
-**Preconditions:**
-
-* Registration endpoint is available.
-* Email is not registered.
-
-**Steps:**
-
-1. Send `POST /api/auth/register`.
-2. Provide a valid email.
-3. Set `fullName` to whitespace characters only.
-4. Provide a valid password.
-
-**Expected Result:**
-
-* API returns `400 Bad Request`.
-* Registration is rejected.
-* No user with a whitespace-only name is created.
-
-**Initial Result:** FAIL
-**Retest Result:** PASS
-
-**Fix Commit:** [`e2ef8bf`](https://github.com/rohachevsk/RoomBookingService/commit/e2ef8bf79eb27dc4df5e0dc9fae01708e86c07d7)
-
-
 ### [TC-006] Input Validation - Incorrect Data Types (Negative)
 
 **Module:** Authentication / Registration  
