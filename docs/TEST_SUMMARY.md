@@ -67,7 +67,8 @@ A total of **8 defects** were identified and documented.
 | --------- | ----: |
 | Critical  |     1 |
 | High      |     1 |
-| Medium    |     4 |
+| Medium    |     3 |
+| Minor     |     1 |
 | Low       |     2 |
 | **Total** | **8** |
 
