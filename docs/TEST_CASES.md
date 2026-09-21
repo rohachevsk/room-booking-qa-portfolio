@@ -162,7 +162,7 @@ User record is not created.
 #### Actual Result
 HTTP Status `201 Created` is returned. The user is successfully saved in the database with a name consisting entirely of spaces.
 **Status:** FAIL
-**Bug ID:** [BUG-AUTH-001]
+**Bug ID:** [BUG-005]
 
 ---
 
@@ -491,7 +491,7 @@ Unauthorized access via default secrets is blocked.
 #### Actual Result
 HTTP Status `200 OK` is returned. Code inspection reveals `jwtSecret = JWT_SECRET ?? 'local-development-secret'`. The live server successfully accepts and processes the forged admin token.
 **Status:** FAIL
-**Bug ID:** [BUG-SEC-001]
+**Bug ID:** [BUG-001]
 
 ---
 
@@ -524,7 +524,7 @@ System blocks excessive login attempts to prevent password guessing/brute-force 
 #### Actual Result
 All 20 requests returned `401 Unauthorized`. No `429 Too Many Requests` limit was triggered. Code inspection confirms absence of rate-limiting middleware.
 **Status:** FAIL
-**Bug ID:** [BUG-SEC-002]
+**Bug ID:** [BUG-004]
 
 ## 3. Rooms Management (`/rooms`)
 
@@ -851,7 +851,7 @@ Server gracefully handles the bad format without crashing.
 #### Actual Result
 HTTP Status `500 Internal Server Error` is returned with an empty body. Prisma unhandled exception for malformed UUID leaks through the controller.
 **Status:** FAIL
-**Bug ID:** [BUG-BE-001]
+**Bug ID:** [BUG-003]
 
 ---
 
@@ -1240,9 +1240,9 @@ Existing database records remain intact and are not accidentally wiped by develo
 - Existing tables: `users`, `rooms`, `bookings`, `logs`
 
 #### Actual Result
-Code inspection (`prisma/seed.ts:9-12`) reveals unconditional `deleteMany()` operations across all core tables (`logs`, `bookings`, `rooms`, `users`) without any environment checks or warnings. Running this script wipes all existing database records.
+Code inspection (`prisma/seed.ts:9-12`) reveals unconditional `deleteMany()` operations across all core tables (`logs`, `bookings`, `rooms`, `users`) without any environment checks or warnings. Code inspection of prisma/seed.ts:9-12 confirms that the script executes unconditional deleteMany() operations for logs, bookings, rooms, and users. If executed against a populated database, these operations would delete the existing records.
 **Status:** FAIL
-**Bug ID:** [BUG-DB-001]
+**Bug ID:** [BUG-002]
 
 ---
 
@@ -1275,7 +1275,7 @@ The `logs` table size remains stable over time and does not consume infinite dis
 #### Actual Result
 No cleanup mechanism, cron job, or database trigger is implemented (search for `cron`/`deleteMany`/`setInterval` returned empty). The `logs` table grows indefinitely on every system action (currently accumulated 31 records from minimal testing).
 **Status:** FAIL
-**Bug ID:** [BUG-DB-002]
+**Bug ID:** [BUG-006]
 
 ---
 
@@ -1311,7 +1311,7 @@ User is restricted to viewing and booking only current and future dates.
 #### Actual Result
 The `<input type="date">` lacks a `min` attribute, allowing infinite navigation into the past. Timeline cells for past dates remain fully clickable (`clickable = room.isActive`), opening the booking modal. Although the backend ultimately rejects the request (`400 Bad Request`), the UI fails to provide proper visual restriction and UX feedback.
 **Status:** FAIL
-**Bug ID:** [BUG-FE-001]
+**Bug ID:** [BUG-007]
 
 ---
 
@@ -1346,4 +1346,4 @@ User cannot accidentally submit a booking that overlaps with an existing partial
 #### Actual Result
 Hour cells remain completely clickable regardless of partial bookings. The booked block renders merely as a visual overlay. Clicking the cell successfully opens the booking modal, allowing form submission, which is subsequently rejected by the backend with a `409 Conflict`. There is no visual indication preventing partial overlaps on the frontend.
 **Status:** FAIL
-**Bug ID:** [BUG-FE-002]
+**Bug ID:** [BUG-008]
